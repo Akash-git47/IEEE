@@ -1,10 +1,9 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
-import { PipelineState, Manifest, PaperMetadata, ErrorCode } from './types';
-import { PIPELINE_STEPS, ERROR_MESSAGES } from './constants';
-import { parsePaperStructure } from './services/geminiService';
-import { generateIEEEDoc } from './services/docxGenerator';
-import Assistant from './components/Assistant';
+import { PipelineState, Manifest, PaperMetadata, ErrorCode } from './types.ts';
+import { PIPELINE_STEPS, ERROR_MESSAGES } from './constants.tsx';
+import { parsePaperStructure } from './services/geminiService.ts';
+import { generateIEEEDoc } from './services/docxGenerator.ts';
+import Assistant from './components/Assistant.tsx';
 import mammoth from 'mammoth';
 
 const App: React.FC = () => {

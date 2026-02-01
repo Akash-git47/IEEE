@@ -1,6 +1,5 @@
-
 import React, { useState, useRef } from 'react';
-import { searchGroundingQuery, analyzePaperContent, generatePaperFigure, analyzeUploadedImage } from '../services/geminiService';
+import { searchGroundingQuery, analyzePaperContent, generatePaperFigure, analyzeUploadedImage } from '../services/geminiService.ts';
 
 interface AssistantProps {
   onClose?: () => void;
