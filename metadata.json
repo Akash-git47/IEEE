@@ -1,0 +1,5 @@
+{
+  "name": "IEEE Research Paper Formatter",
+  "description": "A production-grade system for converting Word documents to strict IEEE Journal format while preserving content integrity.",
+  "requestFramePermissions": []
+}
