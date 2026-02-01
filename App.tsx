@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { PipelineState, Manifest, PaperMetadata, ErrorCode } from './types.ts';
 import { PIPELINE_STEPS, ERROR_MESSAGES } from './constants.tsx';
@@ -15,6 +16,7 @@ const App: React.FC = () => {
   const [metadata, setMetadata] = useState<PaperMetadata | null>(null);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -88,15 +90,37 @@ const App: React.FC = () => {
     }
   }, [file]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const uploadedFile = e.target.files?.[0];
-    if (uploadedFile) {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent) => {
+    let uploadedFile: File | undefined;
+    if ('files' in e.target && e.target.files?.[0]) {
+      uploadedFile = e.target.files[0];
+    } else if ('dataTransfer' in e && e.dataTransfer.files?.[0]) {
+      uploadedFile = e.dataTransfer.files[0];
+    }
+
+    if (uploadedFile && uploadedFile.name.toLowerCase().endsWith('.docx')) {
       setFile(uploadedFile);
       setPipelineState(PipelineState.IDLE);
       setActiveStep(-1);
       setError(null);
       setDownloadUrl(null);
     }
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    handleFileUpload(e);
   };
 
   const reset = () => {
@@ -133,7 +157,6 @@ const App: React.FC = () => {
       </header>
 
       <main className="flex-1 flex flex-col relative overflow-hidden">
-        {/* Assistant Drawer Overlay */}
         <div className={`fixed inset-y-0 right-0 w-full md:w-96 z-40 transform transition-transform duration-300 ease-in-out shadow-2xl ${isAssistantOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           <Assistant onClose={() => setIsAssistantOpen(false)} />
         </div>
@@ -142,9 +165,32 @@ const App: React.FC = () => {
           <div className="max-w-5xl w-full space-y-6 md:space-y-12">
             
             {pipelineState === PipelineState.IDLE && (
-              <div className="bg-white rounded-3xl md:rounded-[40px] border-2 border-dashed border-slate-200 p-8 md:p-24 text-center hover:border-blue-500 transition-all cursor-pointer group relative shadow-2xl shadow-slate-200/50">
-                <input type="file" accept=".docx" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
-                <div className="space-y-6 md:space-y-8">
+              <div 
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`bg-white rounded-3xl md:rounded-[40px] border-2 border-dashed p-8 md:p-24 text-center transition-all cursor-pointer group relative shadow-2xl shadow-slate-200/50 overflow-hidden ${isDragging ? 'border-blue-500 scale-[0.99] bg-blue-50/30' : 'border-slate-200 hover:border-blue-400'}`}
+              >
+                <input 
+                  type="file" 
+                  accept=".docx" 
+                  onChange={handleFileUpload} 
+                  className="absolute inset-0 opacity-0 cursor-pointer z-20" 
+                />
+                
+                {/* Liquid Glass Overlay */}
+                <div className={`absolute inset-0 z-10 flex items-center justify-center transition-all duration-500 pointer-events-none ${isDragging ? 'opacity-100 backdrop-blur-md' : 'opacity-0 pointer-events-none'}`}>
+                   <div className="absolute inset-0 bg-blue-500/10 mix-blend-overlay"></div>
+                   <div className="relative flex flex-col items-center animate-in zoom-in-95 duration-300">
+                      <div className="w-24 h-24 bg-white/40 backdrop-blur-xl rounded-full flex items-center justify-center shadow-2xl border border-white/50 mb-6 group-hover:scale-110 transition-transform">
+                        <i className="fa-solid fa-cloud-arrow-up text-4xl text-blue-600"></i>
+                      </div>
+                      <h3 className="text-2xl font-black text-blue-700 uppercase tracking-widest drop-shadow-sm">Drop Here</h3>
+                      <p className="text-blue-500 font-bold text-sm mt-2">Release to initiate IEEE mapping</p>
+                   </div>
+                </div>
+
+                <div className={`space-y-6 md:space-y-8 transition-opacity duration-300 ${isDragging ? 'opacity-0' : 'opacity-100'}`}>
                   <div className="w-20 h-20 md:w-32 md:h-32 bg-blue-50 text-blue-600 rounded-2xl md:rounded-[32px] flex items-center justify-center mx-auto group-hover:scale-105 transition-all shadow-inner">
                     <i className="fa-solid fa-file-word text-4xl md:text-6xl"></i>
                   </div>
